@@ -26,6 +26,11 @@ connection.once("open", () => {
   console.log("MongoDB connected succefully");
 });
 
+function close() {
+  console.log("Disconnected from db");
+  return mongoose.disconnect();
+}
+
 app.use("/sayings", sayingsRouter);
 app.use("/users", userRouter);
 app.use("/login", authRouter);
@@ -33,3 +38,4 @@ app.use("/login", authRouter);
 app.listen(port, () => {
   console.log(`server is runnning on port ${port}`);
 });
+module.exports = { close };
