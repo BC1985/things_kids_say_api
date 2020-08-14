@@ -22,7 +22,7 @@ const userSchema = new Schema({
   }
 });
   // hash password before saving
-userSchema.pre("save", async (next) =>{
+userSchema.pre("save", async function(next){
   try{
     let user = this;
     // Generate salt
