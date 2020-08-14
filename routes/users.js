@@ -4,14 +4,13 @@ const auth = require("../services/auth-services");
 
 router.route("/").get((req, res) => {
   User.find()
+    .select('email password')
     .then(saying => res.json(saying))
     .catch(err => res.status(400).json("Error:" + err));
 });
 
 router.route("/add").post((req, res) => {
-  const email = req.body.email;
-  const password = req.body.password;
-
+  const {email, password} = req.body
   const newUser = new User({
     email,
     password
