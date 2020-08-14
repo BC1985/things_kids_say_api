@@ -1,27 +1,31 @@
 const router = require("express").Router();
 const User = require("../models/users.model");
-// const JWT = require("jsonwebtoken");
+const jwt = require("jsonwebtoken");
 const auth = require("./auth-services");
 
-router.route("/").post(auth, async (req, res) => {
+router.route("/").post( async (req, res) => {
   try {
     const { email, password } = req.body;
 
     const user = await User.findByCredentials(email, password);
+    console.log(user)
     if (!user) {
       return res.status(401).send({ error: "Login failed" });
     }
-    const token = await user.generateAuthToken();
-    res.send({ user, token });
+    const payload = {
+      email: email,
+      password: password
+     };
+      const accessToken = jwt.sign(payload, process.env.JWT_SECRET);
+      res.send(accessToken);
 
     // const userLogin = new User({ email, password });
-    // const accessToken = JWT.sign({ userLogin }, process.env.JWT_SECRET);
     // userLogin
     //   .save()
     //   .then(() => res.json(accessToken))
     //   .catch(err => res.status(400).json("Error: " + err));
   } catch (error) {
-    res.status(400).json(error);
+   res.status(400).json(error)
   }
 });
 
