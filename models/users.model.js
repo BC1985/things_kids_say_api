@@ -1,18 +1,14 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const bcrypt = require("bcryptjs");
-const validator = require("validator");
+const { isEmail } = require("validator")
 const JWT = require("jsonwebtoken");
 
 const userSchema = new Schema({
   email: {
     type: String,
     required: true,
-    validate: value => {
-      if (!validator.isEmail(value)) {
-        throw new Error( "Invalid email address");
-      }
-    }
+    validate:[isEmail, 'Please enter valid email']    
   },
   password: {
     type: String,
