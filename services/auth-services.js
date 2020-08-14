@@ -22,11 +22,14 @@ const auth = async (req, res, next) => {
       next();
     });
   }
-  const payload = {
-    email: "123@email.com",
-  };
-  const accessToken = jwt.sign(payload, process.env.JWT_SECRET);
-  res.send(accessToken);
+//     const isMatch = await user.isPasswordValid(password)
+// // const isPasswordMatch = bcrypt.compare(user.password, user.password);
+// if (!isMatch) {
+//   throw new Error({ error: "Invalid login credentials" });
+// }else{
+//   return user
+// }
+ 
 };
 
 
