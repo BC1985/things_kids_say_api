@@ -1,24 +1,35 @@
 const router = require("express").Router();
 const User = require("../models/users.model");
 const auth = require("../services/auth-services");
+const bcrypt = require("bcryptjs");
 
 router.route("/").get((req, res) => {
   User.find()
-    .select('email password')
+    .select("email password")
     .then(saying => res.json(saying))
     .catch(err => res.status(400).json("Error:" + err));
 });
 
-router.route("/add").post((req, res) => {
-  const {email, password} = req.body
-  const newUser = new User({
-    email,
-    password
-  });
-  newUser
-    .save()
-    .then(() => res.json(`User with email '${newUser.email}' added`))
-    .catch(err => res.status(400).json("Error:" + err));
+router.route("/add").post(async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    const newUser = new User({
+      email,
+      password,
+    });
+    // Hash password
+    const salt = await bcrypt.genSalt(10);
+    const passwordHash = await bcrypt.hash(password, salt);
+    // save password in DB as hashed
+    newUser.password = passwordHash;
+    // Save user to DB
+    newUser
+      .save()
+      .then(() => res.json(`User with email '${newUser.email}' added`))
+      .catch(err => res.status(400).json("Error:" + err));
+  } catch (error) {
+    res.status(500).send(error);
+  }
 });
 router.route("/:id").get((req, res) => {
   User.findById(req.params.id)
