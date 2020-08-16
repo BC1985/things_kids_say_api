@@ -1,13 +1,13 @@
 const router = require("express").Router();
 const Saying = require("../models/sayings.model");
-// const auth = require("../services/auth-services");
+const auth = require("../services/auth-services");
 router.route("/").get((req, res) => {
   Saying.find()
     .then(saying => res.json(saying))
     .catch(err => res.status(400).json("Error:" + err));
 });
 
-router.route("/add").post((req, res) => {
+router.route("/add").post(auth, (req, res) => {
   const kid_name = req.body.kid_name;
   const age = req.body.age;
   const content = req.body.content;
