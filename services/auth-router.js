@@ -1,31 +1,31 @@
 const router = require("express").Router();
 const User = require("../models/users.model");
 const jwt = require("jsonwebtoken");
-const auth = require("./auth-services");
+const bcrypt = require("bcryptjs");
 
 router.route("/").post( async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    const user = await User.findByCredentials(email, password);
-    console.log(user)
-    if (!user) {
-      return res.status(401).send({ error: "Login failed" });
-    }
-    const payload = {
-      email: email,
-      password: password
-     };
-      const accessToken = jwt.sign(payload, process.env.JWT_SECRET);
-      res.send(accessToken);
+    const user = await User.findOne({ email });
 
-    // const userLogin = new User({ email, password });
-    // userLogin
-    //   .save()
-    //   .then(() => res.json(accessToken))
-    //   .catch(err => res.status(400).json("Error: " + err));
+    if (user === null) {
+      return res.status(400).send("Cannot find user");
+    } else {
+      const payload = {
+        email: email,
+        password: password
+      };
+      const accessToken = jwt.sign(payload, process.env.JWT_SECRET);
+      const isPasswordMatch = await bcrypt.compare(password, user.password);
+      if (isPasswordMatch) {
+        res.json(accessToken);
+      } else {
+        res.status(400).json({ error: "password don't match" });
+      }
+    }
   } catch (error) {
-   res.status(400).json(error)
+    res.status(400).json(error);
   }
 });
 
