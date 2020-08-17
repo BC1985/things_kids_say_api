@@ -2,6 +2,7 @@ const router = require("express").Router();
 const User = require("../models/users.model");
 const auth = require("../services/auth-services");
 const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
 router.route("/").get((req, res) => {
   User.find()
@@ -22,10 +23,13 @@ router.route("/add").post(async (req, res) => {
     const passwordHash = await bcrypt.hash(password, salt);
     // save password in DB as hashed
     newUser.password = passwordHash;
+    // get token on signup
+    const payload = { email:email, password: password };
+    const token = await jwt.sign(payload, process.env.JWT_SECRET)
     // Save user to DB
     newUser
-      .save()
-      .then(() => res.json(`User with email '${newUser.email}' added`))
+    .save()
+    .then(() => res.json({ message:`User with email '${newUser.email}' added`, token: token }))
       .catch(err => res.status(400).json("Error:" + err));
   } catch (error) {
     res.status(500).send(error);
