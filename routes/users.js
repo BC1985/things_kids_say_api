@@ -19,6 +19,11 @@ router.route("/add").post(async (req, res) => {
       password,
     });
     await newUser.validate();
+    // throw error if user alreday in db
+    const userExists = await User.findOne({ email });
+    if (userExists) {
+      res.status(400).json({ error: "user already exists" });
+    }
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
