@@ -12,9 +12,17 @@ const userSchema = new Schema({
   },
   password: {
     type: String,
-    required: true,
+    required: [true, "Password required"],
     minlength: [6, "Must be at least six characters"],
     maxlength: [72, "Password cannot be more that 72 characters long"],
+    validate: {
+      validator: val => {
+        var regex = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[\S]+/;
+        return val == null || val.trim().length < 1 || regex.test(val);
+      },
+      message: "Password invalid.",
+    },
+    // /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[\S]+/
   },
 });
 

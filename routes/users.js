@@ -18,19 +18,25 @@ router.route("/add").post(async (req, res) => {
       email,
       password,
     });
+    await newUser.validate();
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
     // save password in DB as hashed
     newUser.password = passwordHash;
     // get token on signup
-    const payload = { email:email, password: password };
-    const token = await jwt.sign(payload, process.env.JWT_SECRET)
+    const payload = { email: email, password: password };
+    const token = await jwt.sign(payload, process.env.JWT_SECRET);
     // Save user to DB
     newUser
-    .save()
-    .then(() => res.json({ message:`User with email '${newUser.email}' added`, token: token }))
-      .catch(err => res.status(400).json("Error:" + err));
+      .save()
+      .then(() =>
+        res.json({
+          message: `User with email '${newUser.email}' added`,
+          token: token,
+        })
+      )
+      .catch(err => res.status(400).send(err));
   } catch (error) {
     res.status(500).send(error);
   }
