@@ -16,7 +16,11 @@ router.route("/").post( async (req, res) => {
         email: email,
         password: password
       };
-      const accessToken = jwt.sign(payload, process.env.JWT_SECRET);
+      // jwt expires after two days
+      const jwtExpiryTime = "2d";
+      const accessToken = jwt.sign(payload, process.env.JWT_SECRET,{
+        expiresIn: jwtExpiryTime
+      });
       const isPasswordMatch = await bcrypt.compare(password, user.password);
       if (isPasswordMatch) {
         res.json(accessToken);
