@@ -12,18 +12,31 @@ router.route("/").get((req, res) => {
 });
 
 router.route("/add").post(async (req, res) => {
+  // handle errors
+  const handleErrors = err => {
+    console.log(err.message, err.code);
+
+    let errors = { email: "", password: "" };
+    // validation errors
+    if (err.message.includes("User validation failed")) {
+      Object.values(err.errors).forEach(({ properties }) => {
+        errors[properties.path] = properties.message;
+      });
+    }
+    return errors;
+  };
   try {
     const { email, password } = req.body;
-    const newUser = new User({
+    const newUser = await User({
       email,
       password,
     });
     await newUser.validate();
-    // throw error if user alreday in db
-    const userExists = await User.findOne({ email });
-    if (userExists) {
-      res.status(400).json({ error: "user already exists" });
-    }
+    // // throw error if user alreday in db
+    // const userExists = await User.findOne({ email });
+    // if (userExists) {
+    //   res.status(400).json({ error: "user already exists" });
+    // }
     // Hash password
     const salt = await bcrypt.genSalt(10);
     const passwordHash = await bcrypt.hash(password, salt);
@@ -33,17 +46,16 @@ router.route("/add").post(async (req, res) => {
     const payload = { email: email, password: password };
     const token = await jwt.sign(payload, process.env.JWT_SECRET);
     // Save user to DB
-    newUser
-      .save()
-      .then(() =>
-        res.json({
-          message: `User with email '${newUser.email}' added`,
-          token: token,
-        })
-      )
-      .catch(err => res.status(400).send(err));
+    newUser.save(err => {
+      console.log(err);
+    });
+    res.json({
+      message: `User with email '${newUser.email}' added`,
+      token: token,
+    });
   } catch (error) {
-    res.status(500).send(error);
+    const errors = handleErrors(error);
+    res.status(500).json({ errors });
   }
 });
 router.route("/:id").get((req, res) => {
