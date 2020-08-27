@@ -1,14 +1,17 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
-const bcrypt = require("bcryptjs");
 const { isEmail } = require("validator");
-const JWT = require("jsonwebtoken");
+// custom message for unique email validation
+mongoose.plugin(require("mongoose-unique-validator"), {
+  message: "Email already registered",
+});
 
 const userSchema = new Schema({
   email: {
     type: String,
-    required: true,
+    required: [true, "Please enter an email"],
     validate: [isEmail, "Please enter valid email"],
+    unique: true,
   },
   password: {
     type: String,
@@ -20,7 +23,7 @@ const userSchema = new Schema({
         var regex = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[\S]+/;
         return val == null || val.trim().length < 1 || regex.test(val);
       },
-      message: "Password invalid.",
+      message: "Password must include uppercase, lowecase, numbers and symbols",
     },
     // /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[\S]+/
   },
