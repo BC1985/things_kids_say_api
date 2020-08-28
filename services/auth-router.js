@@ -10,7 +10,7 @@ router.route("/").post( async (req, res) => {
     const user = await User.findOne({ email });
 
     if (user === null) {
-      return res.status(400).send("Cannot find user");
+      return res.status(400).json({ error: "Can't find user" });
     } else {
       const payload = {
         email: email,
@@ -25,7 +25,7 @@ router.route("/").post( async (req, res) => {
       if (isPasswordMatch) {
         res.json(accessToken);
       } else {
-        res.status(400).json({ error: "password don't match" });
+        res.status(400).json({ error: "Invalid password" });
       }
     }
   } catch (error) {
