@@ -6,7 +6,7 @@ const jwt = require("jsonwebtoken");
 
 router.route("/").get((req, res) => {
   User.find()
-    .select("email password")
+    .select("email password username")
     .then(saying => res.json(saying))
     .catch(err => res.status(400).json("Error:" + err));
 });
@@ -16,7 +16,7 @@ router.route("/add").post(async (req, res) => {
   const handleErrors = err => {
     console.log(err.message, err.code);
 
-    let errors = { email: "", password: "" };
+    let errors = { email: "", password: "", username: "" };
     // validation errors
     if (err.message.includes("User validation failed")) {
       Object.values(err.errors).forEach(({ properties }) => {
@@ -26,10 +26,11 @@ router.route("/add").post(async (req, res) => {
     return errors;
   };
   try {
-    const { email, password } = req.body;
+    const { email, password, username } = req.body;
     const newUser = await User({
       email,
       password,
+      username,
     });
     await newUser.validate();
     // // throw error if user alreday in db
