@@ -3,35 +3,36 @@ const jwt = require("jsonwebtoken");
 require("dotenv").config();
 
 const auth = async (req, res, next) => {
-  console.log(req.headers);
   // find token in headers
   const token = req.headers["authorization"];
   if (!token) {
     return res.status(401).send("Access was denied");
-  } else 
-  {
+  } else {
     // validate token
     const tokenBody = token && token.split(" ")[1];
-    console.log('TOKEN BODY--',tokenBody);
-    
-    jwt.verify(tokenBody, process.env.JWT_SECRET, (err,decoded)=>{
-      if(err){
+    console.log("TOKEN BODY--", tokenBody);
+
+    jwt.verify(tokenBody, process.env.JWT_SECRET, async (err, decoded) => {
+      // return error if token is invalid
+      if (err) {
         console.log(`JWT error: ${err}`);
-        return res.status(401).send('access denied, yo')
+        return res.status(401).json({ Error: err.message });
+      } else {
+        let user = await User.findOne({ email: decoded.email });
+        res.locals.user = user;
+        console.log("USER", res.locals.user);
+        next();
       }
-      next();
     });
   }
-//     const isMatch = await user.isPasswordValid(password)
-// // const isPasswordMatch = bcrypt.compare(user.password, user.password);
-// if (!isMatch) {
-//   throw new Error({ error: "Invalid login credentials" });
-// }else{
-//   return user
-// }
- 
+  //     const isMatch = await user.isPasswordValid(password)
+  // // const isPasswordMatch = bcrypt.compare(user.password, user.password);
+  // if (!isMatch) {
+  //   throw new Error({ error: "Invalid login credentials" });
+  // }else{
+  //   return user
+  // }
 };
-
 
 // try {
 //   const user = await User.findOne({ _id: data._id, "tokens.token": token });
