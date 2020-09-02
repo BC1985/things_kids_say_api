@@ -23,8 +23,13 @@ const userSchema = new Schema({
         let regex = /(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])[\S]+/;
         return val == null || val.trim().length < 1 || regex.test(val);
       },
-      message: "Password must include uppercase, lowecase, numbers and symbols without spaces",
+      message:
+        "Password must include uppercase, lowecase, numbers and symbols without spaces",
     },
+  },
+  username: {
+    type: String,
+    required: [true, "Username is required"],
   },
 });
 
