@@ -38,24 +38,46 @@ router.route("/:id").delete((req, res) => {
       .catch(err => res.status(400).json("Error:" + err));
   });
 });
-router.route("/:id").get((req, res) => {
-  Saying.findById(req.params.id).then(quote => {
-    res.json(quote).catch(err => res.status(400).json("Error:" + err));
-  });
+router.route("/:id").get(async (req, res) => {
+  try {
+    const data = await Saying.findById(req.params.id).select(
+      "kid_name age content"
+    );
+    return res.status(200).json(data);
+  } catch (err) {
+    res.status(500).json("Error retrieving quote");
+  }
 });
 
-router.route("/update/:id").put((req, res) => {
-  Saying.findById(req.params.id).then(saying => {
-    saying.kid_name = req.body.kid_name;
-    saying.age = req.body.age;
-    saying.content = req.body.content;
-    // saying.username = res.locals.user.username;
+router.route("/update/:id").put(auth, async (req, res) => {
+  const filter = { _id: req.params.id };
+  const update = {
+    kid_name: req.body.kid_name,
+    age: req.body.age,
+    content: req.body.content,
+    username: res.locals.username,
+  };
+  try {
+    const quoteToUpdate = await Saying.findByIdAndUpdate(
+      filter,
+      update,
+      (err, result) => {
+        if (err) {
+          res.status(500).send(err);
+        } else {
+          res
+            .status(200)
+            .json({ updatedQuote: result, message: "Updated successfully" });
+        }
+      }
+    );
 
-    saying
-      .save()
-      .then(() => res.json("Quote updated"))
-      .catch(err => res.status(400).json("Error" + err));
-  });
+    console.log(quoteToUpdate);
+  } catch (err) {
+    res.status(500).json({ Error: err });
+    console.log(err);
+  }
+
 });
 
 module.exports = router;
