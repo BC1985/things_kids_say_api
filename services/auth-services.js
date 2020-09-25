@@ -10,7 +10,6 @@ const auth = async (req, res, next) => {
   } else {
     // validate token
     const tokenBody = token && token.split(" ")[1];
-    console.log("TOKEN BODY--", tokenBody);
 
     jwt.verify(tokenBody, process.env.JWT_SECRET, async (err, decoded) => {
       // return error if token is invalid
@@ -20,8 +19,8 @@ const auth = async (req, res, next) => {
       } else {
         let user = await User.findOne({ email: decoded.email });
         res.locals.user = user;
-        console.log("USER", res.locals.user);
         next();
+        return user
       }
     });
   }
