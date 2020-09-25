@@ -10,6 +10,9 @@ router.route("/").get((req, res) => {
     .then(saying => res.json(saying))
     .catch(err => res.status(400).json("Error:" + err));
 });
+router.route("/current-user").get(auth, (req, res, next) => {
+  res.json(res.locals.user);
+});
 
 router.route("/add").post(async (req, res) => {
   // handle errors
@@ -59,19 +62,21 @@ router.route("/add").post(async (req, res) => {
     res.status(500).json({ errors });
   }
 });
-router.route("/:id").get((req, res) => {
-  User.findById(req.params.id)
-    // .select("email")
-    // .exec((err, doc) => {
-    //   if (err || doc === null) {
-    //     res.status(404).json({ error: "person not found" });
-    //   } else {
-    //     return json(doc);
-    //   }
-    // })
-    .then(user => {
-      res.json(user).catch(err => res.status(400).json("Error:" + err));
-    });
+router.route("/:id").get(auth, async (req, res) => {
+  try {
+    let user = await User.findById(req.params.id);
+    res.json(user);
+  } catch (error) {
+    res.status(400).json({ Error: error.message });
+  }
+  // .select("email")
+  // .exec((err, doc) => {
+  //   if (err || doc === null) {
+  //     res.status(404).json({ error: "person not found" });
+  //   } else {
+  //     return json(doc);
+  //   }
+  // })
 });
 router.route("/:id").delete((req, res) => {
   const email = req.body.email;
