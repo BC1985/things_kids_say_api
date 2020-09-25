@@ -79,5 +79,20 @@ router.route("/update/:id").put(auth, async (req, res) => {
   }
 
 });
+router.route("/users/:id").get(auth, async (req, res, next) => {
+  let user = res.locals.user.username;
+  let id = res.locals.user._id;
+  
+  const data = await Saying.find({ username: user });
+  try {
+    if (req.params.id == id) {
+      res.status(200).json(data);
+    } else {
+      res.status(401).json({ Error: "Unauthorized" });
+    }
+  } catch (error) {
+    console.log(error);
+  }
+});
 
 module.exports = router;
