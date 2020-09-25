@@ -18,7 +18,8 @@ const uri = process.env.CONNECTION_URI;
 mongoose.connect(uri, {
   useNewUrlParser: true,
   useCreateIndex: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
+  useFindAndModify: false
 });
 
 const connection = mongoose.connection;
