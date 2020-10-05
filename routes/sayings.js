@@ -8,27 +8,34 @@ router.route("/").get((req, res) => {
     .catch(err => res.status(400).json("Error:" + err));
 });
 
-router.route("/add").post(auth, (req, res) => {
-  const kid_name = req.body.kid_name;
-  const age = req.body.age;
-  const content = req.body.content;
-  const username = res.locals.user.username;
-  console.log("username:", username);
+router.route("/add").post(auth, async (req, res) => {
+  const handleErrors = err => {
+    console.log(err.message);
 
-  const newSaying = new Saying({
-    kid_name,
-    age,
-    content,
-    username,
-  });
-  newSaying
-    .save()
-    .then(() =>
-      res.json(
-        `Quote added with content: "${newSaying.content}" by user ${username}`
-      )
-    )
-    .catch(err => res.status(400).json("Error:" + err));
+    let errors = { kid_name: "", age: "", content: "" };
+    // validation errors
+    if (err.message.includes("Saying validation failed")) {
+      Object.values(err.errors).forEach(({ properties }) => {
+        errors[properties.path] = properties.message;
+      });
+    }
+    return errors;
+  };
+  try {
+    const newSaying = new Saying({
+      kid_name: req.body.kid_name,
+      age: req.body.age,
+      content: req.body.content,
+      username: res.locals.user.username,
+    });
+    await newSaying.validate();
+    await newSaying.save();
+    res.json(`Quote added with content: "${newSaying.content}`);
+  } catch (error) {
+    let errors = handleErrors(error);
+    res.status(500).json({ errors });
+  }
+  // .catch(err => res.status(400).json("Error:" + err));
 });
 
 router.route("/:id").delete((req, res) => {
@@ -55,34 +62,43 @@ router.route("/update/:id").put(auth, async (req, res) => {
     kid_name: req.body.kid_name,
     age: req.body.age,
     content: req.body.content,
-    username: res.locals.username,
   };
   try {
-    const quoteToUpdate = await Saying.findByIdAndUpdate(
-      filter,
-      update,
-      (err, result) => {
-        if (err) {
-          res.status(500).send(err);
-        } else {
-          res
-            .status(200)
-            .json({ updatedQuote: result, message: "Updated successfully" });
-        }
+    await Saying.findByIdAndUpdate(filter, update, (err, result) => {
+      if (err) {
+        res.status(500).send(err);
+      } else {
+        res.status(200).json({
+          updated: update,
+          original: result,
+          message: "Updated successfully",
+        });
       }
-    );
+    });
 
-    console.log(quoteToUpdate);
-  } catch (err) {
-    res.status(500).json({ Error: err });
-    console.log(err);
+    // console.log(quoteToUpdate);
+  } catch (error) {
+    const handleErrors = err => {
+      console.log(err.message);
+
+      let errors = { kid_name: "", age: "", content: "" };
+      // validation errors
+      if (err.message.includes("Saying validation failed")) {
+        Object.values(err.errors).forEach(({ properties }) => {
+          errors[properties.path] = properties.message;
+        });
+      }
+      return errors;
+    };
+    let errors = handleErrors(error);
+
+    res.status(500).json({ errors });
   }
-
 });
 router.route("/users/:id").get(auth, async (req, res, next) => {
   let user = res.locals.user.username;
   let id = res.locals.user._id;
-  
+
   const data = await Saying.find({ username: user });
   try {
     if (req.params.id == id) {
