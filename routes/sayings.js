@@ -1,6 +1,8 @@
 const router = require("express").Router();
 const Saying = require("../models/sayings.model");
 const auth = require("../services/auth-services");
+const handleErrors = require("../services/error.handler");
+
 router.route("/").get((req, res) => {
   Saying.find()
     .select("kid_name age content username")
@@ -9,18 +11,6 @@ router.route("/").get((req, res) => {
 });
 
 router.route("/add").post(auth, async (req, res) => {
-  const handleErrors = err => {
-    console.log(err.message);
-
-    let errors = { kid_name: "", age: "", content: "" };
-    // validation errors
-    if (err.message.includes("Saying validation failed")) {
-      Object.values(err.errors).forEach(({ properties }) => {
-        errors[properties.path] = properties.message;
-      });
-    }
-    return errors;
-  };
   try {
     const newSaying = new Saying({
       kid_name: req.body.kid_name,
@@ -57,41 +47,26 @@ router.route("/:id").get(async (req, res) => {
 });
 
 router.route("/update/:id").put(auth, async (req, res) => {
-  const filter = { _id: req.params.id };
-  const update = {
-    kid_name: req.body.kid_name,
-    age: req.body.age,
-    content: req.body.content,
-  };
   try {
-    await Saying.findByIdAndUpdate(filter, update, (err, result) => {
+    const filter = { _id: req.params.id };
+    const update = {
+      kid_name: req.body.kid_name,
+      age: req.body.age,
+      content: req.body.content,
+    };
+    await Saying.validate(update);
+    await Saying.findByIdAndUpdate(filter, update, err => {
       if (err) {
-        res.status(500).send(err);
+        let errors = handleErrors(err);
+        res.status(500).json(errors);
       } else {
-        res.status(200).json({
-          updated: update,
-          original: result,
-          message: "Updated successfully",
-        });
+        res
+          .status(200)
+          .json({ updatedQuote: update, message: `Updated successfully` });
       }
     });
-
-    // console.log(quoteToUpdate);
   } catch (error) {
-    const handleErrors = err => {
-      console.log(err.message);
-
-      let errors = { kid_name: "", age: "", content: "" };
-      // validation errors
-      if (err.message.includes("Saying validation failed")) {
-        Object.values(err.errors).forEach(({ properties }) => {
-          errors[properties.path] = properties.message;
-        });
-      }
-      return errors;
-    };
     let errors = handleErrors(error);
-
     res.status(500).json({ errors });
   }
 });
