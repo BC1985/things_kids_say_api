@@ -25,15 +25,15 @@ router.route("/add").post(auth, async (req, res) => {
     let errors = handleErrors(error);
     res.status(500).json({ errors });
   }
-  // .catch(err => res.status(400).json("Error:" + err));
 });
 
-router.route("/:id").delete((req, res) => {
-  Saying.findByIdAndDelete(req.params.id).then(() => {
-    res
-      .json("Quote deleted")
-      .catch(err => res.status(400).json("Error:" + err));
-  });
+router.route("/:id").delete(async (req, res) => {
+  try {
+    await Saying.findByIdAndDelete(req.params.id);
+    res.status(200).json("Quote successfully deleted.");
+  } catch (err) {
+    res.status(500).json({ Error: err.message });
+  }
 });
 router.route("/:id").get(async (req, res) => {
   try {
