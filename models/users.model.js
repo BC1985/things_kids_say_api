@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const Schema = mongoose.Schema;
 const { isEmail } = require("validator");
+const bcrypt = require("bcryptjs");
 // custom message for unique email validation
 mongoose.plugin(require("mongoose-unique-validator"), {
   message: "Email already registered",
@@ -40,5 +41,15 @@ userSchema.statics.findByCredentials = async (email, password) => {
   }
   return user;
 };
+// hash password before saving to database
+userSchema.pre("save", async function (next) {
+  // Hash password
+  const salt = await bcrypt.genSalt(10);
+  const passwordHash = await bcrypt.hash(this.password, salt);
+  // save password in DB as hashed
+  this.password = passwordHash;
+  next();
+});
+
 const User = mongoose.model("User", userSchema);
 module.exports = User;
