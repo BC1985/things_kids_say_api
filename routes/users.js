@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const User = require("../models/users.model");
 const auth = require("../services/auth-services");
+const jwt = require("jsonwebtoken");
 
 router.route("/").get((req, res) => {
   User.find()
@@ -43,8 +44,11 @@ router.route("/add").post(async (req, res) => {
     newUser.save(err => {
       console.log(err);
     });
+    const payload = { email: email, password: password };
+    const token = await jwt.sign(payload, process.env.JWT_SECRET);
     res.json({
       message: `User with email '${newUser.email}' added`,
+      token: token    
     });
   } catch (error) {
     const errors = handleErrors(error);
