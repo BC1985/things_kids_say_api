@@ -3,13 +3,34 @@ const mongoose = require("mongoose");
 require("dotenv").config();
 
 const assert = require("assert");
+const chai = require("chai");
+const chaiHttp = require("chai-http");
+
+chai.use(chaiHttp);
+chai.should();
+
 const test_uri = process.env.CONNECTION_URI_TEST;
+
 const connectionObj = mongoose.connect(test_uri, {
   useNewUrlParser: true,
   useCreateIndex: true,
   useUnifiedTopology: true,
   useFindAndModify: false
 });
+
+describe("GET/sayings", () => {
+  it("gets quotes and returns status code 200", done => {
+    chai
+      .request("http://localhost:5000")
+      .get("/sayings")
+      .end((err, res) => {
+        res.should.have.status(200);
+        res.body.should.be.a("array");
+        done();
+      });
+  });
+});
+
 describe("POST/sayings/add", done => {
   const quote = new Saying({
     kid_name: "test name",
@@ -39,8 +60,7 @@ describe("Delete/sayings/:id", done => {
     content: "test content"
   });
   beforeEach(() => {
-    mongoose.connection.collections.sayings.drop(() => {
-    });
+    mongoose.connection.collections.sayings.drop(() => {});
   });
   quote.save();
   // remove quote
