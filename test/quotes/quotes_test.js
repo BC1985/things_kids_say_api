@@ -1,5 +1,4 @@
-const Saying = require("../../models/sayings.model");
-const conn = require("../../server");
+const Saying = require("../../test/schemas/quoteSchema_test");
 const mongoose = require("mongoose");
 require("dotenv").config();
 
@@ -17,19 +16,13 @@ describe("POST/sayings/add", done => {
     age: 4,
     content: "test content"
   });
-  before(() => {
-    connectionObj.then(() => done()).catch(err => done(err));
+  before(done => {
+    connectionObj.then(() => done()).catch(err => console.log(err));
   });
-  beforeEach(() => {
+  beforeEach(done => {
     mongoose.connection.collections.sayings.drop(() => {
       done();
     });
-  });
-  after(() => {
-    conn
-      .close()
-      .then(() => done())
-      .catch(err => done(err));
   });
   it("Posts new quote", () => {
     quote.save().then(() => {
@@ -47,7 +40,6 @@ describe("Delete/sayings/:id", done => {
   });
   beforeEach(() => {
     mongoose.connection.collections.sayings.drop(() => {
-      done();
     });
   });
   quote.save();
