@@ -13,7 +13,7 @@ const port = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-const uri = process.env.CONNECTION_URI;
+const uri = process.env.CONNECTION_URL;
 
 mongoose.connect(uri, {
   useNewUrlParser: true,
@@ -37,6 +37,9 @@ app.use("/users", userRouter);
 app.use("/login", authRouter);
 
 app.listen(port, () => {
+  const dbName = 'things_kids_say'
   console.log(`server is runnning on port ${port}`);
+  console.log(`Database: ${dbName}`)
+
 });
 module.exports = { close };
