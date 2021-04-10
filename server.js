@@ -42,4 +42,4 @@ app.listen(port, () => {
   console.log(`Database: ${dbName}`)
 
 });
-module.exports = { close };
+module.exports = { close, app };
