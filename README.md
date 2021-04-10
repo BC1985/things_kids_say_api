@@ -18,7 +18,10 @@ Project is created with:
 * MongoDB
 
 ### Setup
-Clone this repo to your desktop and type `npm start` to start the server.
+1) Clone this repo to your desktop. 
+2) `cd` into the project directory.
+3) Type `mongod` in your terminal to start the MongoDB server.
+4) Type `npm start` in the terminal to start your local host.
 
 ### Features 
 * All CRUD API operations
