@@ -24,7 +24,7 @@ mongoose.connect(uri, {
 
 const connection = mongoose.connection;
 connection.once("open", () => {
-  console.log("MongoDB connected succefully");
+  console.log("MongoDB connected successfully");
 });
 
 function close() {
