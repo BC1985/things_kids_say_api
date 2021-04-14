@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon server.js",
-    "test": "mocha --recursive --exit"
+    "start": "node fileName.js",
+    "start:dev": "nodemon fileName.js"
   },
   "keywords": [],
   "author": "",
