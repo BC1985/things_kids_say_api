@@ -2,6 +2,7 @@ const router = require("express").Router();
 const User = require("../models/users.model");
 const auth = require("../services/auth-services");
 const jwt = require("jsonwebtoken");
+const handleErrors = require("../services/error.handler");
 
 router.route("/").get((req, res) => {
   User.find()
@@ -71,24 +72,59 @@ router.route("/:id").get(auth, async (req, res) => {
   //   }
   // })
 });
-router.route("/:id").delete((req, res) => {
-  const email = req.body.email;
-  User.findByIdAndDelete(req.params.id).then(() => {
-    res
-      .json(`User with email '${email}' deleted`)
-      .catch(err => res.status(400).json("Error:" + err));
-  });
-});
-router.route("/update/:id").put((req, res) => {
-  User.findById(req.params.id).then(user => {
-    user.kid_name = req.body.email;
-    user.age = req.body.password;
+router.route("/:id").delete(async (req, res) => {
+  try {
+    const email = req.body.email;
 
-    user
-      .save()
-      .then(() => res.json(`User with email '${newUser.email}' updated`))
-      .catch(err => res.status(400).json("Error" + err));
-  });
+    await User.findByIdAndDelete(req.params.id);
+    res.status(200).json(`User with email '${email}' deleted`);
+  } catch (err) {
+    res.status(500).json({ Error: err.message });
+  }
+});
+router.route("/update/:id").put(async (req, res) => {
+  try {
+    const filter = { _id: req.params.id };
+    const update = {
+      email: req.body.email,
+      username: req.body.username,
+    };
+    await User.findByIdAndUpdate(filter, update, err => {
+      if (err) {
+        let errors = handleErrors(err);
+        res.status(500).json(errors);
+      } else {
+        res
+          .status(200)
+          .json({ updatedUser: update, message: `User with email ${req.body.email} updated successfully` });
+          console.log(res)
+      }
+    });
+  } catch (error) {
+    let errors = handleErrors(error);
+    res.status(500).json({ errors });
+  }
+});
+// update password
+router.route("/password/:id").put(async (req, res) => {
+  try {
+    const filter = { _id: req.params.id };
+    const user = await User.findByIdAndUpdate(filter,req.body.password, err => {
+      if (err) {
+        res.status(500).res(err);
+      } else {
+        res
+        .status(200)
+        .json({ messaga:"updated successfully" });
+      }
+    });
+    user.password = req.body.password
+     user.save({ validateBeforeSave: true });
+  } catch (error) {
+    let errors = handleErrors(error);
+    res.status(500).json({ errors });
+  }
+  
 });
 
 module.exports = router;
