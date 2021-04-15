@@ -3,11 +3,37 @@ const Saying = require("../models/sayings.model");
 const auth = require("../services/auth-services");
 const handleErrors = require("../services/error.handler");
 
-router.route("/").get((req, res) => {
-  Saying.find()
-    .select("kid_name age content username")
-    .then(saying => res.json(saying))
-    .catch(err => res.status(400).json("Error:" + err));
+router.route("/").get(async (req, res) => {
+  try {
+    let query = Saying.find().select("kid_name age content username");
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * pageSize;
+    const total = await Saying.countDocuments();
+    const pages = Math.ceil(total / pageSize);
+    query = query.skip(skip).limit(pageSize);
+
+    if (page > pages) {
+      return res.status(404).json({
+        status: "fail",
+        message: "No page found",
+      })
+    }
+
+    const result = await query;
+    // console.log('total',total)
+    res.status(200).json({
+      count: result.length,
+      page,
+      pages,
+      data: result,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      error: "server error",
+    });
+  }
 });
 
 router.route("/add").post(auth, async (req, res) => {

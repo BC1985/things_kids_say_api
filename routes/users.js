@@ -4,11 +4,36 @@ const auth = require("../services/auth-services");
 const jwt = require("jsonwebtoken");
 const handleErrors = require("../services/error.handler");
 
-router.route("/").get((req, res) => {
-  User.find()
-    .select("email password username")
-    .then(saying => res.json(saying))
-    .catch(err => res.status(400).json("Error:" + err));
+router.route("/").get(async (req, res) => {
+  try {
+    let query = User.find().select("email password username");
+    const page = parseInt(req.query.page) || 1;
+    const pageSize = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * pageSize;
+    const total = await User.countDocuments();
+    const pages = Math.ceil(total / pageSize);
+    query = query.skip(skip).limit(pageSize);
+
+    if (page > pages) {
+      return res.status(404).json({
+        status: "fail",
+        message: "No page found",
+      })
+    }
+
+    const result = await query;
+    res.status(200).json({
+      count: result.length,
+      page,
+      pages,
+      data: result,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      error: "server error",
+    });
+  }
 });
 router.route("/current-user").get(auth, (req, res, next) => {
   res.json(res.locals.user);
@@ -49,7 +74,7 @@ router.route("/add").post(async (req, res) => {
     const token = await jwt.sign(payload, process.env.JWT_SECRET);
     res.json({
       message: `User with email '${newUser.email}' added`,
-      token: token    
+      token: token,
     });
   } catch (error) {
     const errors = handleErrors(error);
@@ -96,8 +121,11 @@ router.route("/update/:id").put(async (req, res) => {
       } else {
         res
           .status(200)
-          .json({ updatedUser: update, message: `User with email ${req.body.email} updated successfully` });
-          console.log(res)
+          .json({
+            updatedUser: update,
+            message: `User with email ${req.body.email} updated successfully`,
+          });
+        console.log(res);
       }
     });
   } catch (error) {
@@ -109,22 +137,23 @@ router.route("/update/:id").put(async (req, res) => {
 router.route("/password/:id").put(async (req, res) => {
   try {
     const filter = { _id: req.params.id };
-    const user = await User.findByIdAndUpdate(filter,req.body.password, err => {
-      if (err) {
-        res.status(500).res(err);
-      } else {
-        res
-        .status(200)
-        .json({ messaga:"updated successfully" });
+    const user = await User.findByIdAndUpdate(
+      filter,
+      req.body.password,
+      err => {
+        if (err) {
+          res.status(500).res(err);
+        } else {
+          res.status(200).json({ messaga: "updated successfully" });
+        }
       }
-    });
-    user.password = req.body.password
-     user.save({ validateBeforeSave: true });
+    );
+    user.password = req.body.password;
+    user.save({ validateBeforeSave: true });
   } catch (error) {
     let errors = handleErrors(error);
     res.status(500).json({ errors });
   }
-  
 });
 
 module.exports = router;
