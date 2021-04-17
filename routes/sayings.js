@@ -3,6 +3,20 @@ const Saying = require("../models/sayings.model");
 const auth = require("../services/auth-services");
 const handleErrors = require("../services/error.handler");
 
+// non-paginated response
+router.route("/all").get(async (req, res) => {
+  const allQuotes = Saying.find().select("kid_name age content username");
+  try {
+    const data = await allQuotes
+    res.status(200).json(data);
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({
+      message: error,
+    });
+  }
+});
+// paginated response
 router.route("/").get(async (req, res) => {
   try {
     let query = Saying.find().select("kid_name age content username");
